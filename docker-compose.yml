@@ -1,0 +1,74 @@
+version: "3.9"
+
+services:
+  db:
+    container_name: db-postgres
+    image: postgres:17.4
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+  web:
+    container_name: django
+    build: .
+    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - rabbitmq
+    env_file: .env
+
+  redis:
+    container_name: redis
+    image: redis:7.0.11-alpine
+    ports:
+      - "6379:6379"
+
+  celery:
+    container_name: celery
+    build: .
+    command: celery --app=lesson_forms worker -l INFO
+    volumes:
+      - .:/app
+    working_dir: /app
+    env_file: .env
+    depends_on:
+      - rabbitmq
+
+  celery-beat:
+    build: .
+    command: celery -A lesson_forms beat -l info
+    depends_on:
+      - rabbitmq
+
+  flower:
+    build: .
+    command: celery -A lesson_forms flower --port=5555 --broker=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672//
+    ports:
+      - "5555:5555"
+    volumes:
+      - .:/app
+    working_dir: /app
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+
+volumes:
+  pgdata:
+  media_volume:
