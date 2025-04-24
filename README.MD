@@ -1,4 +1,4 @@
-# Django Oscar Store
+# Django Celery Project
 
 ## How to run
 
