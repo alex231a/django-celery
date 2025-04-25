@@ -20,7 +20,7 @@ __pycache__/
 # Local settings
 local_settings.py
 settings_local.py
-secure.py
+lesson_forms/secure.py
 
 # Virtual environment
 venv/

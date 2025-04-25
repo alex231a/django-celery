@@ -39,4 +39,4 @@ logger = logging.getLogger(__name__)
 def log_user_count():
     """Function that logs user count"""
     count = get_user_model().objects.count()
-    logger.info("Users amount is: %d", count)
+    logger.info(f"Users amount is: {count}")

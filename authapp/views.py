@@ -45,7 +45,7 @@ def registration(request):
             form.save()
             messages.success(request,
                              "Registration successful! You can now log in.")
-            send_registration_notification(user_email)
+            send_registration_notification.delay(user_email)
             send_marketing_email.apply_async((user_email,), countdown=600)
             return redirect('login')
         messages.error(request,
